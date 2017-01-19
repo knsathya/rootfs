@@ -1,0 +1,8 @@
+#!/bin/sh
+
+/bin/hostname -F /etc/hostname
+/bin/mount -a
+/bin/echo /sbin/mdev > /proc/sys/kernel/hotplug #enable udev
+/sbin/mdev -s
+/etc/init.d/rc.nv
+/etc/init.d/rc.local #make your local init shell (optional line)
