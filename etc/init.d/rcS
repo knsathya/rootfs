@@ -6,7 +6,7 @@ for i in /etc/init.d/S??* ;do
 
      # Ignore dangling symlinks (if any).
      [ ! -f "$i" ] && continue
-
+     echo $i
      case "$i" in
 	*.sh)
 	    # Source shell script for speed.
@@ -18,7 +18,7 @@ for i in /etc/init.d/S??* ;do
 	    ;;
 	*)
 	    # No sh extension, so fork subprocess.
-	    $i start
+	    . $i start
 	    ;;
     esac
 done
