@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Default boot initalization
+#
+
+case "$1" in
+  start)
+ 	echo "Mounting Filesystems..."
+	/bin/mount -a
+	echo "Setting hostname"
+	/bin/hostname -F /etc/hostname
+	;;
+  stop)
+	echo -n "Unmounting Filesystem..."
+	/bin/umount -a
+	;;
+  *)
+	echo "Usage: $0 {start|stop}"
+	exit 1
+esac
+
+exit $?
+

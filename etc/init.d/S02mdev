@@ -1,0 +1,46 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+	echo "Enabling mdev daemon"
+
+	#enable mdev
+	/bin/echo /sbin/mdev > /proc/sys/kernel/hotplug
+	/sbin/mdev -s
+
+	# mdev -s does not poke network interfaces or usb devices so we need to do it here.
+	echo "Loading pci devices kernel modules"
+	for i in /sys/class/pci_bus/0*/device/0*/uevent;do
+		printf 'add' > "$i";
+	done; unset i;
+
+	echo "Loading network devices kernel modules"
+	for i in /sys/class/net/*/uevent; do
+		printf 'add' > "$i";
+	done; unset i;
+
+	echo "Loading usb devices kernel modules"
+	for i in /sys/bus/usb/devices/*; do
+		case "${i##*/}" in
+			[0-9]*-[0-9]*)
+				printf 'add' > "$i/uevent"
+			;;
+		esac
+	done; unset i;
+
+	# Load kernel modules, run twice.
+	echo "Loading other kernel modules"
+	find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs modprobe -b -a 2>/dev/null
+	find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs modprobe -b -a 2>/dev/null
+	;;
+  *)
+	echo "Usage: $0 {start}"
+	exit 1
+esac
+
+exit $?
+
+
+
+
+
