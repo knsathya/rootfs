@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# Load the kernel modules
+# This script is based on Ubuntu rootfs
+#
+
+# Silently exit if the kernel does not support modules.
+[ -f /proc/modules ] || exit 0
+[ -x /sbin/modprobe  ] || exit 0
+
+PATH='/sbin:/bin'
+
+modules_files() {
+  local add_etc_modules=true
+
+  if [ "$add_etc_modules" ]; then
+    echo /etc/modules
+  fi
+}
+
+case "$1" in
+  start)
+ 	echo "Loading local modules..."
+	files=$(modules_files)
+	echo $files
+	if [ "$files" ] ; then
+		grep -h '^[^#]' $files |
+		while read module args; do 
+			echo $module
+			[ "$module" ] || continue
+			if [ -n "$args" ] ;  then
+				/sbin/modprobe "$module" "$args"
+			else
+				/sbin/modprobe "$module"
+			fi
+		done
+	fi
+	;;
+  stop)
+ 	echo "Unloading local modules..."
+	if [ "$files" ] ; then
+		grep -h '^[^#]' $files |
+		while read module args; do 
+			[ "$module" ] || continue
+			/sbin/rmmod "$module"
+		done
+	fi
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+

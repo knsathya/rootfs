@@ -6,6 +6,7 @@
 case "$1" in
   start)
  	echo "Starting network..."
+	/sbin/ifdown -a
 	/sbin/ifup -a
 	;;
   stop)
