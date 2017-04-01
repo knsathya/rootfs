@@ -57,13 +57,6 @@ class Git(object):
         self.git = "/usr/bin/git"
         self.repo_dir = repo_dir
 
-    def __exec_cmd__(self, cmd):
-        cwd = os.getcwd()
-        os.chdir(self.repo_dir)
-        exec_cmd(cmd)
-        os.chdir(cwd)
-        return ret
-
     def clone(self, repo, repo_name=None):
         cmd = [self.git]
         cmd.append('clone')
@@ -71,7 +64,7 @@ class Git(object):
         if repo_name is not None:
             cmd.append(repo_name)
 
-        return self.__exec_cmd__(cmd)
+        return exec_cmd(cmd, self.repo_dir)
 
 class MKRootfs(object):
     def __init__(self, src, out=None):
@@ -79,6 +72,8 @@ class MKRootfs(object):
         self.mkcmd = ["/usr/bin/make"]
         if out is not None:
             self.out = out
+            if not os.path.exists(self.out):
+                os.makedirs(self.out)
             self.mkcmd.append("O=" + self.out)
         else:
             self.out = src
