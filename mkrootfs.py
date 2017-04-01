@@ -138,6 +138,15 @@ def build_rootfs(name, src, cfg, out, install_dir):
     rootfs.compile()
     rootfs.install(install_dir)
 
+def create_image(install_dir):
+
+    rel_path = os.path.relpath(install_dir)
+    out_path = os.path.join(os.getcwd(), 'rootfs')
+    if os.path.exists(out_path):
+        os.remove(out_path)
+    #create symlink to rootfs install dir
+    os.symlink(rel_path, out_path)
+
 def get_source(rootfs):
 
     if rootfs not in supported_rootfs.keys():
@@ -163,7 +172,6 @@ if __name__ == '__main__':
     parser.add_argument('rootfs', action='store', choices=supported_rootfs.keys(), help='use rootfs type from given option')
     args = parser.parse_args()
     src, cfg, out, install_dir = get_source(args.rootfs)
-    print src, cfg, out
     build_rootfs(args.rootfs, src, cfg, out, install_dir)
-    #create symlink to rootfs install dir
-    os.symlink(install_dir, 'rootfs')
+    create_image(install_dir)
+
