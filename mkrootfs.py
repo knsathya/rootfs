@@ -105,6 +105,7 @@ class MKRootfs(object):
         logger.info(self.mkcmd)
         exec_cmd(self.mkcmd + args + ['install'], self.src)
 
+
 class MKBusybox(MKRootfs):
 
     def __init__(self, src, out=None):
@@ -118,9 +119,22 @@ class MKBusybox(MKRootfs):
         args = []
         return super(MKBusybox, self).compile(args)
 
+    def __init_rootfs__(self, install_dir):
+        dir_list = ["dev","etc","lib","proc","tmp"
+                "sys","media","mnt","opt","var"]
+        if not os.path.isdir(install_dir):
+            logger.warn("install dir %s is invalid", install_dir)
+            return
+
+        for entry in dir_list:
+            new_dir = os.path.join(install_dir, entry)
+            if not os.path.exists(new_dir):
+                os.makedirs(new_dir)
+
     def install(self, install_dir=None):
         args = []
         if install_dir is not None:
+            self.__init_rootfs__(install_dir)
             args = ["CONFIG_PREFIX=" + install_dir]
         logger.info(args)
         return super(MKBusybox, self).install(args)
