@@ -9,6 +9,8 @@ case "$1" in
 	/bin/mount -a
 	echo "Setting hostname"
 	/bin/hostname -F /etc/hostname
+	/bin/mkdir -pv /{etc,tmp,proc,sys,dev,home,mnt,root,usr/{bin,sbin,lib},var}
+	/bin/mkdir -pv /etc/network/if-{post-{up,down},pre-{up,down},up,down}.d
 	;;
   stop)
 	echo -n "Unmounting Filesystem..."

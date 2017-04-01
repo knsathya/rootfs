@@ -30,8 +30,8 @@ case "$1" in
 
 	# Load kernel modules, run twice.
 	echo "Loading other kernel modules"
-	find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs modprobe -b -a 2>/dev/null
-	find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs modprobe -b -a 2>/dev/null
+	find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs /sbin/modprobe -b -a 2>/dev/null
+	find /sys -name 'modalias' -type f -exec cat '{}' + | sort -u | xargs /sbin/modprobe -b -a 2>/dev/null
 	;;
   *)
 	echo "Usage: $0 {start}"
