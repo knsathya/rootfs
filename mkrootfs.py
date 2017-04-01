@@ -115,7 +115,7 @@ class MKBusybox(MKRootfs):
         return super(MKBusybox, self).compile(args)
 
     def __init_rootfs__(self, install_dir):
-        dir_list = ["dev","etc","lib","proc","tmp"
+        dir_list = ["dev","etc","lib","proc","tmp",
                 "sys","media","mnt","opt","var"]
         if not os.path.isdir(install_dir):
             logger.warn("install dir %s is invalid", install_dir)
