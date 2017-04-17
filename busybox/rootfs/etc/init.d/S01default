@@ -9,15 +9,6 @@ case "$1" in
 	/bin/mount -a
 	echo "Setting hostname"
 	/bin/hostname -F /etc/hostname
-	for dir in etc tmp proc sys dev home mnt root usr var; do
-		/bin/mkdir -p $dir
-	done
-	for dir in usr/bin usr/sbin usr/lib; do
-		/bin/mkdir -p $dir
-	done
-	for dir in if-post-up.d if-post-down.d if-pre-up.d if-pre-down.d if-up.d if-down.d; do
-		/bin/mkdir -p /etc/network/$dir
-	done
 	;;
   stop)
 	echo -n "Unmounting Filesystem..."
