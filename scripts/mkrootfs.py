@@ -28,6 +28,7 @@ import argparse
 import subprocess
 import tempfile
 import shutil
+import stat
 
 _MKROOTFS_TOP = os.getcwd()
 
@@ -37,9 +38,9 @@ logging.basicConfig(format=FORMAT)
 logger.setLevel(logging.DEBUG)
 
 supported_rootfs = {
-        "busybox"   :   "https://git.busybox.net/busybox",
-        "buildroot" :   "https://git.busybox.net/buildroot",
-        "toybox"    :   "https://github.com/landley/toybox.git"
+        "busybox"   :   ("https://git.busybox.net/busybox", "master"),
+        "buildroot" :   ("https://git.busybox.net/buildroot", "master"),
+        "toybox"    :   ("https://github.com/landley/toybox.git", "master")
 }
 
 def exec_cmd(cmd, cmd_dir=None):
