@@ -1,0 +1,47 @@
+#!/bin/sh
+
+export HOME=/home
+export PATH=/bin:/sbin
+
+source /etc/profile
+
+parse_cmdline()
+{
+	param=$1
+	value="$(cat /proc/cmdline | awk -F"$param=" '{print $2}' | awk -F" " '{print $1}')"
+	echo $value
+}
+
+# mount temporary filesystems
+
+/bin/mount -n -t devtmpfs devtmpfs /dev
+/bin/mount -n -t proc     proc     /proc
+/bin/mount -n -t sysfs    sysfs    /sys
+/bin/mount -n -t tmpfs    tmpfs    /tmp
+
+# setup networking
+ifconfig eth0 192.168.1.150
+route add default gw 192.168.1.1
+
+# set hostname
+echo "Setting hostname"
+/bin/hostname -F /etc/hostname
+
+root_dev=$(parse_cmdline root)
+console_dev=$(parse_cmdline console)
+new_init=$(parse_cmdline init)
+
+if [ -z "$root_dev" ]; then
+    echo "root_dev is empty"
+else
+	echo "Root device is "$root_dev
+	/bin/mount $root_dev /root
+	/bin/mount --move /sys /root/sys
+	/bin/mount --move /proc /root/proc
+	/bin/mount --move /dev /root/dev
+	/bin/mount --move /tmp /root/tmp
+	exec /sbin/switch_root -c $console_dev /root $new_init
+fi
+
+/bin/sh
+
