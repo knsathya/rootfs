@@ -38,7 +38,8 @@ logging.basicConfig(format=FORMAT)
 logger.setLevel(logging.DEBUG)
 
 supported_rootfs = {
-        "busybox"   :   ("https://git.busybox.net/busybox", "master"),
+        "minrootfs" :   (None, None),
+        "busybox"   :   ("git://git.busybox.net/busybox", "1_26_2"),
         "buildroot" :   ("https://git.busybox.net/buildroot", "master"),
         "toybox"    :   ("https://github.com/landley/toybox.git", "master")
 }
@@ -54,7 +55,7 @@ def exec_cmd(cmd, cmd_dir=None):
     return ret
 
 class Git(object):
-    def __init__(self, repo_dir=os.getcwd()):
+    def __init__(self, repo_dir=None):
         self.git = "/usr/bin/git"
         self.repo_dir = repo_dir
 
@@ -67,24 +68,60 @@ class Git(object):
 
         return exec_cmd(cmd, self.repo_dir)
 
-class MKRootfs(object):
-    def __init__(self, src, out=None):
-        self.src = src
-        self.mkcmd = ["/usr/bin/make"]
-        if out is not None:
-            self.out = out
-            if not os.path.exists(self.out):
-                os.makedirs(self.out)
-            self.mkcmd.append("O=" + self.out)
-        else:
-            self.out = src
+    def checkout(self, branch="master"):
+        cmd = [self.git]
+        cmd.append('checkout')
+        cmd.append(branch)
 
-    def genconfig(self, config=None):
+        return exec_cmd(cmd, self.repo_dir)
+
+class MKRootfs(object):
+    def __init__(self, top, name, src=None, config=None, out=None, install_dir=None):
+        logger.info("rootfs init")
+        if name not in supported_rootfs.keys():
+            raise Exception("rootfs %s not supported" % name)
+        self.top = top
+        self.name = name
+        self.mkcmd = ["/usr/bin/make"]
+        self.rootfs_top = os.path.join(self.top, name)
+        self.scripts_top = os.path.join(self.top, "scripts")
+        get_path = lambda x, y: os.path.join(self.rootfs_top, x) if y is None else y
+        self.src = get_path("src", src)
+        self.cfg = get_path("config", config)
+        self.out = get_path("out", out)
+        self.install_dir = get_path("rootfs", install_dir)
+
+        if not os.path.exists(self.out):
+            os.makedirs(self.out)
+
         if config is None:
+            self.cfg = os.path.join(self.cfg, "config")
+
+        self.repo = supported_rootfs[name][0]
+        self.repo_branch = supported_rootfs[name][1]
+
+        if not os.path.exists(os.path.join(self.src, "Makefile")):
+            logger.debug("getting rootfs %s source", self.name)
+            if self.repo is not None:
+                Git().clone(self.repo, self.src)
+
+        if self.repo is not None:
+            Git(self.src).checkout(self.repo_branch)
+
+        self.mkcmd.append("O=" + self.out)
+
+    def minrootfs_init(self, script_name):
+        logger.info("installing %s in %s", script_name, self.install_dir)
+        mkrootfs_cmd = [os.path.join(self.scripts_top, script_name)]
+        mkrootfs_cmd.append(self.install_dir)
+        exec_cmd(mkrootfs_cmd)
+
+    def genconfig(self):
+        if self.cfg is None:
             # create default config
             exec_cmd(self.mkcmd + ['defconfig'], self.src)
         else:
-            shutil.copyfile(config, os.path.join(self.out, '.config'))
+            shutil.copyfile(self.cfg, os.path.join(self.out, '.config'))
  
     def compile(self, args=[]):
         # compile src
@@ -101,87 +138,68 @@ class MKRootfs(object):
         logger.info(self.mkcmd)
         exec_cmd(self.mkcmd + args + ['install'], self.src)
 
+    def build_all(self, compile_args=[], install_args=[]):
+        self.genconfig()
+        self.compile(compile_args)
+        self.install(install_args)
+
+class MKMinrootfs(MKRootfs):
+
+    def __init__(self, top, src=None, config=None, out=None, install_dir=None):
+        logger.info("Busybox init")
+        super(MKMinrootfs, self).__init__(top, "minrootfs", src, config, out, install_dir)
+        self.minrootfs_init("minrootfs.sh")
+
+    def genconfig(self):
+        return True
+
+    def compile(self, args=[]):
+        return True
+
+    def install(self, args=[]):
+        args = ["INSTALL_DIR=" + os.path.join(self.install_dir, "bin")]
+        return super(MKMinrootfs, self).install(args)
+
+    def build_all(self, compile_args=[], install_args=[]):
+        self.genconfig()
+        self.compile(compile_args)
+        self.install(install_args)
 
 class MKBusybox(MKRootfs):
 
-    def __init__(self, src, out=None):
+    def __init__(self, top, src=None, config=None, out=None, install_dir=None):
         logger.info("Busybox init")
-        super(MKBusybox, self).__init__(src, out)
+        super(MKBusybox, self).__init__(top, "busybox", src, config, out, install_dir)
+        super(MKBusybox, self).minrootfs_init("minrootfs-busybox.sh")
 
-    def genconfig(self, config=None):
-        return super(MKBusybox, self).genconfig(config)
+    def genconfig(self):
+        return super(MKBusybox, self).genconfig()
 
     def compile(self, args=[]):
-        args = []
         return super(MKBusybox, self).compile(args)
 
-    def __init_rootfs__(self, install_dir):
-        dir_list = ["dev","etc","lib","proc","tmp",
-                "sys","media","mnt","opt","var"]
-        if not os.path.isdir(install_dir):
-            logger.warn("install dir %s is invalid", install_dir)
-            return
-
-        for entry in dir_list:
-            new_dir = os.path.join(install_dir, entry)
-            if not os.path.exists(new_dir):
-                os.makedirs(new_dir)
-
-    def install(self, install_dir=None):
-        args = []
-        if install_dir is not None:
-            self.__init_rootfs__(install_dir)
-            args = ["CONFIG_PREFIX=" + install_dir]
-        logger.info(args)
+    def install(self, args=[]):
+        args = ["CONFIG_PREFIX=" + self.install_dir]
         return super(MKBusybox, self).install(args)
 
-
-def build_rootfs(name, src, cfg, out, install_dir):
-    rootfs = MKRootfs(src, out) 
-    if name not in supported_rootfs.keys():
-        raise Exception("rootfs %s not supported" % name)
-
-    if name == "busybox":
-        rootfs = MKBusybox(src, out)
-
-    rootfs.genconfig(cfg)
-    rootfs.compile()
-    rootfs.install(install_dir)
-
-def create_image(install_dir):
-
-    rel_path = os.path.relpath(install_dir)
-    out_path = os.path.join(os.getcwd(), 'rootfs')
-    if os.path.exists(out_path):
-        os.remove(out_path)
-    #create symlink to rootfs install dir
-    os.symlink(rel_path, out_path)
-
-def get_source(rootfs):
-
-    if rootfs not in supported_rootfs.keys():
-        raise Exception("rootfs %s not supported" % rootfs)
-
-    rootfs_top = os.path.join(_MKROOTFS_TOP, rootfs)
-    rootfs_src = os.path.join(rootfs_top, "src")
-    rootfs_cfg = os.path.join(rootfs_top, "config", "config")
-    rootfs_out = os.path.join(rootfs_top, "out")
-    rootfs_install_dir = os.path.join(rootfs_top, "rootfs")
-
-    if not os.path.exists(os.path.join(rootfs_src, "Makefile")):
-        logger.debug("rootfs %s source exist", rootfs)
-        git = Git(rootfs_top)
-        cloned_repo = git.clone(supported_rootfs[rootfs], "src")
-
-    return (rootfs_src, rootfs_cfg, rootfs_out, rootfs_install_dir)
+    def build_all(self, compile_args=[], install_args=[]):
+        self.genconfig()
+        self.compile(compile_args)
+        self.install(install_args)
 
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='rootfs build app')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     parser.add_argument('rootfs', action='store', choices=supported_rootfs.keys(), help='use rootfs type from given option')
+    parser.add_argument('-c', '--config', action='store', dest='config', type=argparse.FileType(), help='config file used for rootfs compilation')
     args = parser.parse_args()
-    src, cfg, out, install_dir = get_source(args.rootfs)
-    build_rootfs(args.rootfs, src, cfg, out, install_dir)
-    create_image(install_dir)
-
+    #src, cfg, out, install_dir = get_source(args.rootfs)
+    #build_rootfs(args.rootfs, src, cfg, out, install_dir)
+    #create_image(install_dir)
+    if args.rootfs == "minrootfs":
+        mkrootfs = MKMinrootfs(os.getcwd())
+        mkrootfs.build_all()
+    elif args.rootfs == "busybox":
+        mkrootfs = MKBusybox(os.getcwd(), config=args.config.name if args.config is not None else None)
+        mkrootfs.build_all()
