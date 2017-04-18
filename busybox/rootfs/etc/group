@@ -1,10 +1,3 @@
 root:x:0:
 tty:x:5:
 disk:x:6:
-dialout:x:20:
-cdrom:x:24:sathya
-floppy:x:25:
-audio:x:29:pulse
-video:x:44:
-pulse:x:124:
-sathya:x:1000:

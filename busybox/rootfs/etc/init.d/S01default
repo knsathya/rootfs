@@ -2,6 +2,7 @@
 #
 # Default boot initalization
 #
+
 echo "calling default script"
 case "$1" in
   start)
@@ -20,4 +21,3 @@ case "$1" in
 esac
 
 exit $?
-

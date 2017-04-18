@@ -41,4 +41,3 @@ set bell-style visible
 "\eOD": backward-char
 "\eOF": end-of-line
 "\eOH": beginning-of-line
-

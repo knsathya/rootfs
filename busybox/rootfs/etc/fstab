@@ -6,5 +6,6 @@
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
 
-none            /proc           proc    defaults          0      2
-none            /sys            sysfs   defaults          0      1
+none            /proc           proc     defaults          0      2
+none            /sys            sysfs    defaults          0      1
+none            /dev            devtmpfs defaults          0      1

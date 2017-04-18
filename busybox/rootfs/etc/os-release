@@ -1,2 +1,4 @@
-NAME=Qemu-system-x86_64
-PRETTY_NAME="Qemu x86_64 2017.1"
+NAME="Kdev"
+PRETTY_NAME="Kdev 0.1"
+VERSION_ID="0.1"
+HOME_URL="https://github.com/knsathya/kdev.git"
