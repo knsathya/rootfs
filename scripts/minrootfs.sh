@@ -9,7 +9,7 @@ rm -fr $out
 echo "Create files and directories"
 mkdir -pv $out/{dev,etc,lib,proc,tmp,sys,media,mnt,opt,var,home,root,usr,var/run} &&
 chmod a+rwxt "$out"/tmp &&
-mkdir -pv $out/etc/{init.d,network/{if-{post-{up,down},pre-{up,down},up,down}.d}} &&
+mkdir -pv $out/etc/{init.d,network/if-{post-{up,down},pre-{up,down},up,down}.d} &&
 mkdir -pv $out/usr/{bin,sbin,lib,share/udhcpc} &&
 ln -s usr/bin "$out/bin" &&
 ln -s usr/sbin "$out/sbin" &&
@@ -85,6 +85,12 @@ cat > "$etc"/group << 'EOF' &&
 root:x:0:
 tty:x:5:
 disk:x:6:
+dialout:x:20:
+cdrom:x:24:sathya
+floppy:x:25:
+audio:x:29:pulse
+video:x:44:
+pulse:x:124:
 EOF
 
 #############################################################

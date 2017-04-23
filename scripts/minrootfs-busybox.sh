@@ -111,7 +111,6 @@ for i in /etc/init.d/S??* ;do
 
      # Ignore dangling symlinks (if any).
      [ ! -f "$i" ] && continue
-     echo $i
      case "$i" in
 	*.sh)
 	    # Source shell script for speed.
@@ -136,7 +135,6 @@ cat > "$etc"/init.d/S01default << 'EOF' &&
 # Default boot initalization
 #
 
-echo "calling default script"
 case "$1" in
   start)
  	echo "Mounting Filesystems..."
@@ -182,7 +180,6 @@ case "$1" in
   start)
  	echo "Loading local modules..."
 	files=$(modules_files)
-	echo $files
 	if [ "$files" ] ; then
 		grep -h '^[^#]' $files |
 		while read module args; do 

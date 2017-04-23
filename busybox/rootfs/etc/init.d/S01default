@@ -3,7 +3,6 @@
 # Default boot initalization
 #
 
-echo "calling default script"
 case "$1" in
   start)
  	echo "Mounting Filesystems..."

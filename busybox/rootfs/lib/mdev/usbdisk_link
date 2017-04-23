@@ -5,7 +5,7 @@
 current=$(readlink usbdisk)
 
 if [ "$current" = "$MDEV" ] && [ "$ACTION" = "remove" ]; then
-	rm -f usbdisk usba1 
+	rm -f usbdisk usba1
 fi
 [ -n "$current" ] && exit
 

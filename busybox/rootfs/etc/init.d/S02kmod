@@ -22,7 +22,6 @@ case "$1" in
   start)
  	echo "Loading local modules..."
 	files=$(modules_files)
-	echo $files
 	if [ "$files" ] ; then
 		grep -h '^[^#]' $files |
 		while read module args; do 
