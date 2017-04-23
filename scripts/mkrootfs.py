@@ -146,7 +146,7 @@ class MKRootfs(object):
 class MKMinrootfs(MKRootfs):
 
     def __init__(self, top, src=None, config=None, out=None, install_dir=None):
-        logger.info("Busybox init")
+        logger.info("Minrootfs init")
         super(MKMinrootfs, self).__init__(top, "minrootfs", src, config, out, install_dir)
         self.minrootfs_init("minrootfs.sh")
 
@@ -161,6 +161,7 @@ class MKMinrootfs(MKRootfs):
         return super(MKMinrootfs, self).install(args)
 
     def build_all(self, compile_args=[], install_args=[]):
+        logger.debug(locals())
         self.genconfig()
         self.compile(compile_args)
         self.install(install_args)
@@ -183,9 +184,18 @@ class MKBusybox(MKRootfs):
         return super(MKBusybox, self).install(args)
 
     def build_all(self, compile_args=[], install_args=[]):
+        logger.debug(locals())
         self.genconfig()
         self.compile(compile_args)
         self.install(install_args)
+
+def rootfs_supported(rootfs_name):
+    if rootfs_name == "busybox":
+        return MKBusybox
+    elif rootfs_name == "minrootfs":
+        return MKMinrootfs
+    else:
+        return None
 
 if __name__ == '__main__':
     
@@ -194,9 +204,6 @@ if __name__ == '__main__':
     parser.add_argument('rootfs', action='store', choices=supported_rootfs.keys(), help='use rootfs type from given option')
     parser.add_argument('-c', '--config', action='store', dest='config', type=argparse.FileType(), help='config file used for rootfs compilation')
     args = parser.parse_args()
-    #src, cfg, out, install_dir = get_source(args.rootfs)
-    #build_rootfs(args.rootfs, src, cfg, out, install_dir)
-    #create_image(install_dir)
     if args.rootfs == "minrootfs":
         mkrootfs = MKMinrootfs(os.getcwd())
         mkrootfs.build_all()
