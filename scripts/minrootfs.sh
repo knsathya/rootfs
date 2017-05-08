@@ -136,12 +136,16 @@ if [ -z "$root_dev" ]; then
     echo "root_dev is empty"
 else
 	echo "Root device is "$root_dev
+	while [ ! -b "$root_dev" ]; do
+		echo "Waiting for root device "$root_dev
+		sleep 1
+	done
 	/bin/mount $root_dev /root
 	/bin/mount --move /sys /root/sys
 	/bin/mount --move /proc /root/proc
 	/bin/mount --move /dev /root/dev
 	/bin/mount --move /tmp /root/tmp
-	exec /sbin/switch_root -c $console_dev /root $new_init
+	exec /sbin/switch_root /root $new_init
 fi
 
 /bin/sh
