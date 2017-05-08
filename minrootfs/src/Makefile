@@ -3,11 +3,13 @@ ifeq ($(INSTALL_DIR),)
 endif
 
 busybox=busybox
+adbd=adbd
 
 .PHONY: install
 install: $(busybox)
 	mkdir -p $(INSTALL_DIR)
 	cp $(busybox) $(INSTALL_DIR)
+	cp $(adbd) $(INSTALL_DIR)
 
 .PHONY: uninstall
 uninstall:
