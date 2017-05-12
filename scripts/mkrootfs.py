@@ -168,10 +168,12 @@ class MKMinrootfs(MKRootfs):
 
 class MKBusybox(MKRootfs):
 
-    def __init__(self, top, src=None, config=None, out=None, install_dir=None):
+    def __init__(self, top, src=None, config=None, out=None, install_dir=None, support_adb=False):
         logger.info("Busybox init")
         super(MKBusybox, self).__init__(top, "busybox", src, config, out, install_dir)
         super(MKBusybox, self).minrootfs_init("minrootfs-busybox.sh")
+        self.support_adb = support_adb
+        self.extras_dir = os.path.join(self.rootfs_top, "extras")
 
     def genconfig(self):
         return super(MKBusybox, self).genconfig()
@@ -181,6 +183,9 @@ class MKBusybox(MKRootfs):
 
     def install(self, args=[]):
         args = ["CONFIG_PREFIX=" + self.install_dir]
+        if self.support_adb:
+                adbd_path = os.path.join(self.extras_dir, "adbd", "bin", "adbd")
+                shutil.copyfile(adbd_path, os.path.join(self.install_dir, "sbin", "adbd"))
         return super(MKBusybox, self).install(args)
 
     def build_all(self, compile_args=[], install_args=[]):
