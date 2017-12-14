@@ -36,13 +36,13 @@ cat > "$etc"/inittab << 'EOF' &&
 ::askfirst:-/bin/sh
 
 # Start an "askfirst" shell on /dev/tty2-4
-tty2::askfirst:-/bin/sh
-tty3::askfirst:-/bin/sh
-tty4::askfirst:-/bin/sh
+#tty2::askfirst:-/bin/sh
+#tty3::askfirst:-/bin/sh
+#tty4::askfirst:-/bin/sh
 
 # /sbin/getty invocations for selected ttys
-tty4::respawn:/sbin/getty 38400 tty5
-tty5::respawn:/sbin/getty 38400 tty6
+#tty4::respawn:/sbin/getty 38400 tty5
+#tty5::respawn:/sbin/getty 38400 tty6
 
 # Example of how to put a getty on a serial line (for a terminal)
 #::respawn:/sbin/getty -L ttyS0 9600 vt100

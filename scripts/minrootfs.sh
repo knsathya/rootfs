@@ -137,12 +137,12 @@ if [ -z "$root_dev" ]; then
 else
 	echo "Root device is "$root_dev
 	count=0
-	while [[ ! -b "$root_dev" ] && [ $count -le 10 ]]; do
+	while [ ! -b "$root_dev" ] && [ $count -le 10 ]; do
 		echo "Waiting for root device "$root_dev
-		(( count++ ))
+		count=$((count+1))
 		sleep 1
 	done
-	if [ -b "$root_dev"]; then
+	if [ -b "$root_dev" ]; then
 		/bin/mount $root_dev /root
 		/bin/mount --move /sys /root/sys
 		/bin/mount --move /proc /root/proc
